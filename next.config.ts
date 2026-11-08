@@ -10,7 +10,6 @@ const nextConfig: NextConfig = {
   experimental: {
     agentFeedback: true,
   },
-  partialPrefetching: true,
   reactCompiler: true,
   turbopack: {
     rules: {
