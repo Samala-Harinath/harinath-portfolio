@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+/* ══════════════════════════════════════
+   DARK THEME (default)
+══════════════════════════════════════ */
+:root,
+[data-theme="dark"] {
+  --bg:              #07070a;
+  --surface:         #0d0d12;
+  --card:            #111118;
+  --card-hover:      #16161f;
+
+  --text-primary:    #f4f4f6;
+  --text-secondary:  #9898aa;
+  --text-muted:      #5a5a70;
+
+  --border:          #1e1e2a;
+  --border-light:    #262636;
+
+  --accent:          #7c3aed;
+  --accent-bright:   #8b5cf6;
+  --accent-dim:      rgba(124, 58, 237, 0.12);
+  --accent-glow:     rgba(124, 58, 237, 0.25);
+
+  --success:         #10b981;
+  --error:           #ef4444;
+
+  --shadow-card:     0 20px 60px -15px rgba(0,0,0,0.6);
+  --shadow-hover:    0 24px 70px -12px rgba(0,0,0,0.7);
+}
+
+/* ══════════════════════════════════════
+   LIGHT THEME
+══════════════════════════════════════ */
+[data-theme="light"] {
+  --bg:              #f8f8ff;
+  --surface:         #efeffa;
+  --card:            #ffffff;
+  --card-hover:      #f4f4ff;
+
+  --text-primary:    #0a0a18;
+  --text-secondary:  #44445a;
+  --text-muted:      #8080a0;
+
+  --border:          #dcdcf0;
+  --border-light:    #c8c8e4;
+
+  --accent:          #6d28d9;
+  --accent-bright:   #7c3aed;
+  --accent-dim:      rgba(109, 40, 217, 0.1);
+  --accent-glow:     rgba(109, 40, 217, 0.18);
+
+  --success:         #059669;
+  --error:           #dc2626;
+
+  --shadow-card:     0 4px 24px -4px rgba(0,0,0,0.08);
+  --shadow-hover:    0 8px 32px -4px rgba(0,0,0,0.14);
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text-primary);
+  --font-sans:   var(--font-sans);
+  --font-mono:   var(--font-mono);
+}
+
+/* ══════════════════════════════════════
+   BASE
+══════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans), 'Plus Jakarta Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.65;
+  font-feature-settings: "rlig" 1, "calt" 1;
+  overflow-x: hidden;
+  /* Smooth theme transition on bg/color only */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display), 'Outfit', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+code, pre, kbd, samp, .font-mono {
+  font-family: var(--font-mono), 'JetBrains Mono', monospace;
+  font-feature-settings: "liga" 1, "calt" 1;
+}
+
+/* Smooth border/bg transitions on key elements */
+header, nav, footer, section, article, aside,
+.card, button, a, input, textarea, select {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 0.25s;
+  transition-timing-function: ease;
+}
+
+::selection { background-color: var(--accent-bright); color: #fff; }
+
+:focus-visible {
+  outline: 2px solid var(--accent-bright);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ══════════════════════════════════════
+   UTILITIES
+══════════════════════════════════════ */
+.gradient-text {
+  background: linear-gradient(135deg, var(--text-primary) 20%, var(--accent-bright) 60%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="light"] .gradient-text {
+  background: linear-gradient(135deg, #1a0a40 10%, var(--accent) 55%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ══════════════════════════════════════
+   SECTION / CARD
+══════════════════════════════════════ */
+.section {
+  padding-top: 6rem;
+  padding-bottom: 6rem;
+  border-top: 1px solid var(--border);
+}
+
+@media (min-width: 768px) {
+  .section { padding-top: 8rem; padding-bottom: 8rem; }
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+.card:hover {
+  border-color: var(--border-light);
+  background: var(--card-hover);
+  box-shadow: var(--shadow-hover);
+}
+
+/* ══════════════════════════════════════
+   BLINK CURSOR
+══════════════════════════════════════ */
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ══════════════════════════════════════
+   PING (availability badge pulse)
+══════════════════════════════════════ */
+@keyframes ping {
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
