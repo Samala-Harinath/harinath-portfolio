@@ -150,7 +150,8 @@ export function HeroScene() {
     observer.observe(wrap);
     resize();
 
-    const clock = new THREE.Clock();
+    const timer = new THREE.Timer();
+    timer.connect(document);
     let elapsed = 0;
     let frame = 0;
     let running = true;
@@ -179,7 +180,8 @@ export function HeroScene() {
 
     const tick = () => {
       if (!running) return;
-      draw(Math.min(clock.getDelta(), 0.05));
+      timer.update();
+      draw(Math.min(timer.getDelta(), 0.05));
       frame = requestAnimationFrame(tick);
     };
 
@@ -196,7 +198,7 @@ export function HeroScene() {
         return;
       }
       if (reduce) return;
-      clock.getDelta();
+      timer.update();
       running = true;
       tick();
     };
@@ -226,6 +228,8 @@ export function HeroScene() {
     return () => {
       running = false;
       cancelAnimationFrame(frame);
+      timer.disconnect();
+      timer.dispose();
       window.removeEventListener("pointermove", onPointer);
       document.removeEventListener("visibilitychange", onVisibility);
       observer.disconnect();
