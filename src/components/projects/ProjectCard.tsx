@@ -2,10 +2,11 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { ArrowUpRight, ExternalLink, Lock } from "lucide-react";
 import type { Project } from "@/types/project";
 import { cn } from "@/lib/utils";
+import { EASE, SPRING } from "@/components/ui/AnimatedSection";
 
 interface ProjectCardProps {
   project: Project;
@@ -57,29 +58,43 @@ const categoryIcons: Record<string, React.ReactNode> = {
 export function ProjectCard({ project, className, index = 0 }: ProjectCardProps) {
   const cfg = categoryConfig[project.category] ?? categoryConfig.Other;
   const cardRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
 
-  // Pure CSS 3D tilt via inline style mutation — no React state churn
+  // Pure CSS 3D tilt + pointer-tracked sheen via inline style mutation —
+  // no React state churn, so it stays smooth at 60fps.
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = cardRef.current;
-    if (!card) return;
+    if (!card || reduce) return;
     const rect = card.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    card.style.transform = `perspective(900px) rotateX(${-y * 7}deg) rotateY(${x * 7}deg) translateY(-4px)`;
+    const px = (e.clientX - rect.left) / rect.width;
+    const py = (e.clientY - rect.top) / rect.height;
+    const x = px - 0.5;
+    const y = py - 0.5;
+    card.style.transform = `perspective(1000px) rotateX(${-y * 6}deg) rotateY(${x * 6}deg) translateY(-6px) scale(1.01)`;
+
+    const glow = glowRef.current;
+    if (glow) {
+      glow.style.opacity = "1";
+      glow.style.background = `radial-gradient(420px circle at ${px * 100}% ${py * 100}%, rgba(${cfg.glowColor},0.16), transparent 60%)`;
+    }
   };
 
   const handleMouseLeave = () => {
     const card = cardRef.current;
-    if (!card) return;
-    card.style.transform = "perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)";
+    if (card) {
+      card.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)";
+    }
+    const glow = glowRef.current;
+    if (glow) glow.style.opacity = "0";
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ delay: index * 0.08, duration: 0.5, ease: "easeOut" }}
+      initial={{ opacity: 0, y: reduce ? 0 : 28, filter: reduce ? "none" : "blur(8px)" }}
+      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      viewport={{ once: true, margin: "-10%" }}
+      transition={{ delay: index * 0.08, duration: 0.7, ease: EASE }}
       className={cn("cursor-default", className)}
     >
       <div
@@ -87,11 +102,18 @@ export function ProjectCard({ project, className, index = 0 }: ProjectCardProps)
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         style={{
-          transition: "transform 0.15s ease-out",
+          transition: "transform 0.25s cubic-bezier(0.33,1,0.68,1), border-color 0.25s ease",
           willChange: "transform",
         }}
-        className="flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden hover:border-[var(--border-light)] h-full"
+        className="group relative flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden hover:border-[var(--border-light)] h-full"
       >
+        {/* Pointer-tracked sheen */}
+        <div
+          ref={glowRef}
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-10 opacity-0"
+          style={{ transition: "opacity 0.3s ease" }}
+        />
         {/* Visual area */}
         <div
           className={cn(
@@ -110,7 +132,7 @@ export function ProjectCard({ project, className, index = 0 }: ProjectCardProps)
           />
 
           {/* Icon */}
-          <div className="relative text-white">
+          <div className="relative text-white transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover:scale-100 motion-reduce:group-hover:rotate-0">
             {categoryIcons[project.category] ?? categoryIcons.SaaS}
           </div>
 
@@ -154,13 +176,17 @@ export function ProjectCard({ project, className, index = 0 }: ProjectCardProps)
 
           {/* Tech tags */}
           <div className="flex flex-wrap gap-1.5 mb-5">
-            {project.technologies.slice(0, 5).map((t) => (
-              <span
+            {project.technologies.slice(0, 5).map((t, i) => (
+              <motion.span
                 key={t}
+                initial={{ opacity: 0, y: reduce ? 0 : 8, scale: reduce ? 1 : 0.92 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, margin: "-8%" }}
+                transition={{ delay: index * 0.08 + 0.25 + i * 0.04, duration: 0.35, ease: EASE }}
                 className="px-2 py-0.5 rounded-md bg-[var(--surface)] border border-[var(--border)] text-[11px] font-mono text-[var(--text-muted)]"
               >
                 {t}
-              </span>
+              </motion.span>
             ))}
             {project.technologies.length > 5 && (
               <span className="px-2 py-0.5 rounded-md bg-[var(--surface)] border border-[var(--border)] text-[11px] font-mono text-[var(--text-muted)]">
@@ -171,14 +197,19 @@ export function ProjectCard({ project, className, index = 0 }: ProjectCardProps)
 
           {/* Footer */}
           <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
-            <Link
-              href={`/projects/${project.slug}`}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent-bright)] hover:text-violet-400 transition-colors"
-              aria-label={`Case study: ${project.title}`}
-            >
-              Case study
-              <ArrowUpRight className="w-3.5 h-3.5" aria-hidden />
-            </Link>
+            <motion.div whileHover={reduce ? undefined : { x: 3 }} transition={SPRING}>
+              <Link
+                href={`/projects/${project.slug}`}
+                className="group/link inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent-bright)] hover:text-violet-400 transition-colors"
+                aria-label={`Case study: ${project.title}`}
+              >
+                Case study
+                <ArrowUpRight
+                  className="w-3.5 h-3.5 transition-transform duration-300 ease-out group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5"
+                  aria-hidden
+                />
+              </Link>
+            </motion.div>
             {project.liveUrl && (
               <a
                 href={project.liveUrl}

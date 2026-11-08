@@ -1,9 +1,16 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { skillCategories } from "@/data/skills";
 import { Container } from "@/components/ui/Container";
-import { AnimatedSection, StaggerContainer, staggerItem } from "@/components/ui/AnimatedSection";
+import {
+  AnimatedSection,
+  StaggerContainer,
+  staggerItem,
+  staggerChip,
+  SPRING,
+  EASE,
+} from "@/components/ui/AnimatedSection";
 
 /* Real SVG icons per category */
 const categoryConfig: Record<string, { color: string; borderColor: string; icon: React.ReactNode }> = {
@@ -75,32 +82,53 @@ const featured = [
 ];
 
 function SkillBar({ skill, delay }: { skill: { name: string; level: number }; delay: number }) {
+  const reduce = useReducedMotion();
+
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
+      initial={{ opacity: 0, x: reduce ? 0 : -20 }}
       whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay, duration: 0.5 }}
+      viewport={{ once: true, margin: "-10%" }}
+      transition={{ delay, duration: 0.55, ease: EASE }}
+      className="group"
     >
       <div className="flex justify-between mb-1.5">
-        <span className="text-sm font-medium text-[var(--text-secondary)]">{skill.name}</span>
+        <span className="text-sm font-medium text-[var(--text-secondary)] transition-colors group-hover:text-[var(--text-primary)]">
+          {skill.name}
+        </span>
         <span className="text-xs font-mono text-[var(--text-muted)]">{skill.level}%</span>
       </div>
-      <div className="h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
+      <div className="relative h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
         <motion.div
           className="h-full rounded-full"
           style={{ background: "linear-gradient(90deg, #7c3aed, #a78bfa)" }}
-          initial={{ width: 0 }}
+          initial={{ width: reduce ? `${skill.level}%` : 0 }}
           whileInView={{ width: `${skill.level}%` }}
-          viewport={{ once: true }}
-          transition={{ delay: delay + 0.2, duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          viewport={{ once: true, margin: "-10%" }}
+          transition={{ delay: delay + 0.2, duration: 1.1, ease: EASE }}
         />
+        {!reduce && (
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 w-16"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent)",
+            }}
+            initial={{ x: "-4rem", opacity: 0 }}
+            whileInView={{ x: ["-4rem", "100%"], opacity: [0, 1, 0] }}
+            viewport={{ once: true, margin: "-10%" }}
+            transition={{ delay: delay + 0.5, duration: 1.1, ease: "easeInOut" }}
+          />
+        )}
       </div>
     </motion.div>
   );
 }
 
 export function Skills() {
+  const reduce = useReducedMotion();
+
   return (
     <section id="skills" aria-labelledby="skills-heading" className="section">
       <Container>
@@ -135,23 +163,38 @@ export function Skills() {
                   <motion.div
                     key={cat.name}
                     variants={staggerItem}
-                    whileHover={{ y: -3, scale: 1.02 }}
-                    className={`rounded-xl border bg-[var(--card)] p-4 cursor-default transition-all hover:bg-[var(--card-hover)] ${cfg?.borderColor ?? "border-[var(--border)]"}`}
+                    whileHover={reduce ? undefined : { y: -5, scale: 1.02 }}
+                    whileTap={reduce ? undefined : { scale: 0.99 }}
+                    transition={SPRING}
+                    className={`rounded-xl border bg-[var(--card)] p-4 cursor-default transition-colors hover:bg-[var(--card-hover)] ${cfg?.borderColor ?? "border-[var(--border)]"}`}
                   >
-                    <div className={`mb-3 ${cfg?.color ?? "text-violet-400"}`}>{cfg?.icon}</div>
+                    <motion.div
+                      className={`mb-3 ${cfg?.color ?? "text-violet-400"}`}
+                      whileHover={reduce ? undefined : { rotate: -8, scale: 1.15 }}
+                      transition={SPRING}
+                    >
+                      {cfg?.icon}
+                    </motion.div>
                     <p className="text-xs font-bold text-[var(--text-primary)] mb-2">{cat.name}</p>
-                    <div className="flex flex-wrap gap-1">
+                    <StaggerContainer className="flex flex-wrap gap-1" stagger={0.03} delay={0.1}>
                       {cat.skills.slice(0, 4).map((s) => (
-                        <span key={s} className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--surface)] border border-[var(--border)] text-[var(--text-muted)] font-mono">
+                        <motion.span
+                          key={s}
+                          variants={staggerChip}
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--surface)] border border-[var(--border)] text-[var(--text-muted)] font-mono"
+                        >
                           {s}
-                        </span>
+                        </motion.span>
                       ))}
                       {cat.skills.length > 4 && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--surface)] border border-[var(--border)] text-[var(--text-muted)] font-mono">
+                        <motion.span
+                          variants={staggerChip}
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--surface)] border border-[var(--border)] text-[var(--text-muted)] font-mono"
+                        >
                           +{cat.skills.length - 4}
-                        </span>
+                        </motion.span>
                       )}
-                    </div>
+                    </StaggerContainer>
                   </motion.div>
                 );
               })}

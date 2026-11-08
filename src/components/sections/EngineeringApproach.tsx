@@ -1,8 +1,14 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { Container } from "@/components/ui/Container";
-import { AnimatedSection } from "@/components/ui/AnimatedSection";
+import {
+  AnimatedSection,
+  StaggerContainer,
+  staggerItem,
+  staggerChip,
+  SPRING,
+} from "@/components/ui/AnimatedSection";
 
 const approaches = [
   {
@@ -80,6 +86,8 @@ const approaches = [
 ];
 
 export function EngineeringApproach() {
+  const reduce = useReducedMotion();
+
   return (
     <section id="approach" aria-labelledby="approach-heading" className="section">
       <Container>
@@ -93,23 +101,26 @@ export function EngineeringApproach() {
           </p>
         </AnimatedSection>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {approaches.map((item, i) => (
+        <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" stagger={0.08}>
+          {approaches.map((item) => (
             <motion.div
               key={item.num}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              whileHover={{ y: -6, scale: 1.02 }}
-              className="group rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 hover:border-[var(--border-light)] transition-all hover:shadow-xl hover:shadow-black/30 cursor-default"
+              variants={staggerItem}
+              whileHover={reduce ? undefined : { y: -8, scale: 1.02 }}
+              whileTap={reduce ? undefined : { scale: 0.99 }}
+              transition={SPRING}
+              className="group rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 hover:border-[var(--border-light)] transition-colors hover:shadow-xl hover:shadow-black/30 cursor-default"
             >
               {/* Number */}
               <div className="flex items-start justify-between mb-5">
-                <span className={`w-10 h-10 rounded-xl flex items-center justify-center ${item.color} bg-current/10`}>
+                <motion.span
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${item.color} bg-current/10`}
+                  whileHover={reduce ? undefined : { rotate: -8, scale: 1.1 }}
+                  transition={SPRING}
+                >
                   <span className={item.color}>{item.icon}</span>
-                </span>
-                <span className="font-mono text-3xl font-black text-[var(--border-light)] group-hover:text-[var(--accent)]/20 transition-colors">
+                </motion.span>
+                <span className="font-mono text-3xl font-black text-[var(--border-light)] transition-colors duration-300 group-hover:text-[var(--accent)]/30">
                   {item.num}
                 </span>
               </div>
@@ -120,16 +131,20 @@ export function EngineeringApproach() {
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-4">
                 {item.description}
               </p>
-              <div className="flex flex-wrap gap-1.5">
+              <StaggerContainer className="flex flex-wrap gap-1.5" stagger={0.03} delay={0.12}>
                 {item.tags.map((tag) => (
-                  <span key={tag} className="px-2 py-0.5 rounded bg-[var(--surface)] border border-[var(--border)] text-[10px] font-mono text-[var(--text-muted)]">
+                  <motion.span
+                    key={tag}
+                    variants={staggerChip}
+                    className="px-2 py-0.5 rounded bg-[var(--surface)] border border-[var(--border)] text-[10px] font-mono text-[var(--text-muted)]"
+                  >
                     {tag}
-                  </span>
+                  </motion.span>
                 ))}
-              </div>
+              </StaggerContainer>
             </motion.div>
           ))}
-        </div>
+        </StaggerContainer>
       </Container>
     </section>
   );

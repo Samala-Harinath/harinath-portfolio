@@ -1,8 +1,14 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import {
+  motion,
+  AnimatePresence,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+  useSpring,
+} from "motion/react";
 import { ArrowRight, Download, Mail } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "@/components/ui/SocialIcons";
 import { personal } from "@/data/personal";
@@ -69,71 +75,29 @@ function RoleLine() {
   );
 }
 
-function Portrait() {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const reduce = useReducedMotion();
-
-  function tilt(event: React.PointerEvent<HTMLDivElement>) {
-    const card = cardRef.current;
-    if (!card || reduce) return;
-    const rect = card.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width - 0.5;
-    const y = (event.clientY - rect.top) / rect.height - 0.5;
-    card.style.transform = `rotateY(${x * 16}deg) rotateX(${-y * 12}deg)`;
-  }
-
-  function reset() {
-    const card = cardRef.current;
-    if (!card) return;
-    card.style.transform = "rotateY(-10deg) rotateX(6deg)";
-  }
-
-  return (
-    <div
-      className="absolute bottom-6 left-2 z-20 w-[148px] sm:bottom-10 sm:left-4 sm:w-[168px] md:w-[186px]"
-      style={{ perspective: "900px" }}
-      onPointerMove={tilt}
-      onPointerLeave={reset}
-    >
-      <div
-        ref={cardRef}
-        className="relative will-change-transform transition-transform duration-200 ease-out"
-        style={{ transform: "rotateY(-10deg) rotateX(6deg)", transformStyle: "preserve-3d" }}
-      >
-        <div className="overflow-hidden rounded-2xl border border-white/15 bg-[var(--card)] shadow-2xl shadow-black/50">
-          <div className="relative aspect-[4/5]">
-            <Image
-              src={personal.image}
-              alt={personal.name}
-              fill
-              priority
-              className="object-cover object-top"
-              sizes="186px"
-            />
-          </div>
-          <div className="flex items-center gap-2 border-t border-[var(--border)] px-3 py-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" aria-hidden />
-            <span className="truncate text-[10px] font-medium tracking-wide text-[var(--text-secondary)]">
-              {personal.location.split(",")[0]}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function Hero() {
   const reduce = useReducedMotion();
+  const sectionRef = useRef<HTMLElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+  const parallaxRaw = useTransform(scrollYProgress, [0, 1], [0, 90]);
+  const parallax = useSpring(parallaxRaw, { stiffness: 120, damping: 28, mass: 0.4 });
+  const visualY = reduce ? 0 : parallax;
+  const visualOpacity = useTransform(scrollYProgress, [0, 0.75], [1, reduce ? 1 : 0.25]);
+  const copyY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : 40]);
 
   const rise = (delay = 0) => ({
-    initial: { opacity: 0, y: reduce ? 0 : 16 },
-    animate: { opacity: 1, y: 0 },
-    transition: { delay, duration: 0.65, ease: [0.16, 1, 0.3, 1] as const },
+    initial: { opacity: 0, y: reduce ? 0 : 18, filter: reduce ? "none" : "blur(4px)" },
+    animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+    transition: { delay, duration: 0.75, ease: [0.16, 1, 0.3, 1] as const },
   });
 
   return (
     <section
+      ref={sectionRef}
       id="hero"
       aria-label="Introduction"
       className="relative flex min-h-[100svh] items-center overflow-hidden"
@@ -166,8 +130,8 @@ export function Hero() {
       />
 
       <Container className="relative z-10 w-full py-28 md:py-32">
-        <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-6">
-          <div className="max-w-xl">
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
+          <motion.div className="max-w-xl" style={{ y: copyY }}>
             {personal.openToOpportunities && (
               <motion.div {...rise(0)} className="mb-7">
                 <span className="inline-flex items-center gap-2 rounded-full border border-[var(--success)]/25 bg-[var(--success)]/10 px-3.5 py-1.5 text-[11px] font-semibold tracking-wide text-[var(--success)]">
@@ -267,28 +231,50 @@ export function Hero() {
                 </div>
               ))}
             </motion.dl>
-          </div>
+          </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: reduce ? 1 : 0.96 }}
+            initial={{ opacity: 0, scale: reduce ? 1 : 0.94 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.15, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="relative mx-auto h-[420px] w-full max-w-[520px] sm:h-[480px] lg:h-[560px] lg:max-w-none"
+            transition={{ delay: 0.15, duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            style={{ y: visualY, opacity: visualOpacity }}
+            className="relative mx-auto aspect-square w-full max-w-[440px] sm:max-w-[520px] lg:max-w-[600px]"
           >
             <div
               aria-hidden
-              className="pointer-events-none absolute left-1/2 top-1/2 h-[70%] w-[70%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+              className="pointer-events-none absolute left-1/2 top-1/2 h-[66%] w-[66%] -translate-x-1/2 -translate-y-1/2 rounded-full"
               style={{
                 background:
-                  "radial-gradient(circle, rgba(124,58,237,0.35) 0%, rgba(34,211,238,0.08) 42%, transparent 70%)",
-                filter: "blur(8px)",
+                  "radial-gradient(circle, rgba(124,58,237,0.32) 0%, rgba(34,211,238,0.07) 42%, transparent 70%)",
+                filter: "blur(10px)",
               }}
             />
             <HeroScene />
-            <Portrait />
           </motion.div>
         </div>
       </Container>
+
+      <ScrollCue reduce={!!reduce} />
     </section>
+  );
+}
+
+function ScrollCue({ reduce }: { reduce: boolean }) {
+  return (
+    <motion.div
+      aria-hidden
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 1.2, duration: 0.8 }}
+      className="pointer-events-none absolute inset-x-0 bottom-7 z-10 hidden justify-center md:flex"
+    >
+      <div className="flex h-9 w-5 items-start justify-center rounded-full border border-[var(--border-light)] p-1">
+        <motion.span
+          className="h-1.5 w-1 rounded-full bg-[var(--accent-bright)]"
+          animate={reduce ? undefined : { y: [0, 10, 0], opacity: [1, 0.3, 1] }}
+          transition={{ duration: 1.9, repeat: Infinity, ease: "easeInOut" }}
+        />
+      </div>
+    </motion.div>
   );
 }

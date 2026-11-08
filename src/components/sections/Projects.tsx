@@ -34,9 +34,11 @@ export function Projects() {
           </div>
         )}
 
-        <p className="mt-8 text-xs text-[var(--text-muted)] max-w-2xl leading-relaxed">
-          <span className="text-[var(--text-secondary)] font-medium">Note:</span> Some project details are sanitised to respect confidentiality. Architecture patterns and implementation approaches are described accurately; client-specific data and proprietary details are omitted.
-        </p>
+        <AnimatedSection delay={0.1}>
+          <p className="mt-8 text-xs text-[var(--text-muted)] max-w-2xl leading-relaxed">
+            <span className="text-[var(--text-secondary)] font-medium">Note:</span> Some project details are sanitised to respect confidentiality. Architecture patterns and implementation approaches are described accurately; client-specific data and proprietary details are omitted.
+          </p>
+        </AnimatedSection>
       </Container>
     </section>
   );

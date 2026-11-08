@@ -4,9 +4,27 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 /**
- * Pointer-reactive low-poly sculpture. Pauses off-screen, when the tab
- * is hidden, and when the user prefers reduced motion.
+ * Pointer-reactive low-poly sculpture.
+ *
+ * Framing is computed from the scene bounding sphere every resize, so the
+ * composition is always fully inside the frustum regardless of container
+ * aspect ratio — it never crops on narrow / portrait containers.
+ *
+ * Pauses off-screen, when the tab is hidden, and when the user prefers
+ * reduced motion.
  */
+
+/** Vertical field of view. Narrow enough to stay flattering, wide enough to frame well. */
+const FOV = 40;
+/** Radius of the sphere that contains every object + its animation travel. */
+const SCENE_RADIUS = 2.52;
+/** Breathing room between the sculpture and the canvas edge. */
+const FIT_MARGIN = 1.16;
+/** Camera direction (normalised at runtime) — a gentle 3/4 angle. */
+const VIEW_DIR = new THREE.Vector3(0.26, 0.15, 1).normalize();
+
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
 export function HeroScene() {
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -14,18 +32,19 @@ export function HeroScene() {
     const wrap = wrapRef.current;
     if (!wrap) return;
 
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reduce = motionQuery.matches;
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
       powerPreference: "high-performance",
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setClearColor(0x000000, 0);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.18;
+    renderer.toneMappingExposure = 1.15;
     const canvas = renderer.domElement;
     canvas.style.width = "100%";
     canvas.style.height = "100%";
@@ -34,85 +53,136 @@ export function HeroScene() {
     wrap.appendChild(canvas);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 40);
-    camera.position.set(1.55, 0.62, 6.15);
-    camera.lookAt(0, 0, 0);
+    const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 60);
 
     const root = new THREE.Group();
     scene.add(root);
 
-    const gemGeo = new THREE.IcosahedronGeometry(1.32, 0);
+    /* ── core sculpture ─────────────────────────────────────────── */
+
+    const gemGeo = new THREE.IcosahedronGeometry(1.2, 0);
     const gemMat = new THREE.MeshPhysicalMaterial({
       color: 0x3b0764,
-      metalness: 0.55,
-      roughness: 0.28,
+      metalness: 0.6,
+      roughness: 0.24,
       clearcoat: 1,
-      clearcoatRoughness: 0.2,
+      clearcoatRoughness: 0.16,
       emissive: 0x5b21b6,
-      emissiveIntensity: 0.18,
+      emissiveIntensity: 0.2,
       flatShading: true,
     });
     const gem = new THREE.Mesh(gemGeo, gemMat);
     root.add(gem);
 
-    const wireGeo = new THREE.IcosahedronGeometry(1.38, 1);
+    const wireGeo = new THREE.IcosahedronGeometry(1.27, 1);
     const wireMat = new THREE.MeshBasicMaterial({
       color: 0xc4b5fd,
       wireframe: true,
       transparent: true,
-      opacity: 0.36,
+      opacity: 0.32,
+      depthWrite: false,
     });
     const wire = new THREE.Mesh(wireGeo, wireMat);
     root.add(wire);
 
-    const coreGeo = new THREE.OctahedronGeometry(0.34, 0);
-    const coreMat = new THREE.MeshBasicMaterial({ color: 0xf5f3ff });
+    const haloGeo = new THREE.IcosahedronGeometry(1.52, 2);
+    const haloMat = new THREE.MeshBasicMaterial({
+      color: 0x7c3aed,
+      transparent: true,
+      opacity: 0.08,
+      side: THREE.BackSide,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const halo = new THREE.Mesh(haloGeo, haloMat);
+    root.add(halo);
+
+    const coreGeo = new THREE.OctahedronGeometry(0.3, 0);
+    const coreMat = new THREE.MeshBasicMaterial({ color: 0xf5f3ff, transparent: true });
     const core = new THREE.Mesh(coreGeo, coreMat);
     root.add(core);
 
-    const ringGeo = new THREE.TorusGeometry(2.18, 0.011, 16, 180);
+    /* ── orbital rings ──────────────────────────────────────────── */
+
+    const ringGeo = new THREE.TorusGeometry(1.84, 0.009, 12, 200);
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0x67e8f9,
       transparent: true,
-      opacity: 0.72,
+      opacity: 0.7,
+      depthWrite: false,
     });
     const ring = new THREE.Mesh(ringGeo, ringMat);
     ring.rotation.x = Math.PI / 2.4;
     ring.rotation.y = 0.25;
     root.add(ring);
 
-    const ring2Geo = new THREE.TorusGeometry(2.62, 0.006, 12, 160);
+    const ring2Geo = new THREE.TorusGeometry(2.26, 0.006, 10, 200);
     const ring2Mat = new THREE.MeshBasicMaterial({
       color: 0xa78bfa,
       transparent: true,
-      opacity: 0.38,
+      opacity: 0.36,
+      depthWrite: false,
     });
     const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
     ring2.rotation.x = Math.PI / 1.65;
     ring2.rotation.z = 0.45;
     root.add(ring2);
 
+    /* ── orbiting shards ────────────────────────────────────────── */
+
     const orbit = new THREE.Group();
     root.add(orbit);
-    const shardGeo = new THREE.OctahedronGeometry(0.085, 0);
+    const shardGeo = new THREE.OctahedronGeometry(0.082, 0);
     const shardMat = new THREE.MeshStandardMaterial({
       color: 0xe9d5ff,
       metalness: 0.75,
-      roughness: 0.22,
+      roughness: 0.2,
       emissive: 0x6d28d9,
       emissiveIntensity: 0.45,
+      transparent: true,
     });
     const shards: THREE.Mesh[] = [];
     const count = 6;
     for (let i = 0; i < count; i++) {
       const shard = new THREE.Mesh(shardGeo, shardMat);
       const angle = (i / count) * Math.PI * 2;
-      shard.position.set(Math.cos(angle) * 2.18, Math.sin(angle * 2) * 0.28, Math.sin(angle) * 2.18);
+      shard.position.set(Math.cos(angle) * 1.84, Math.sin(angle * 2) * 0.26, Math.sin(angle) * 1.84);
       orbit.add(shard);
       shards.push(shard);
     }
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.38));
+    /* ── ambient dust ───────────────────────────────────────────── */
+
+    const dustCount = 140;
+    const dustPos = new Float32Array(dustCount * 3);
+    for (let i = 0; i < dustCount; i++) {
+      // Even-ish distribution on a shell between the gem and the outer ring.
+      const u = Math.random() * 2 - 1;
+      const theta = Math.random() * Math.PI * 2;
+      const r = 1.6 + Math.random() * 0.78;
+      const s = Math.sqrt(1 - u * u);
+      dustPos[i * 3] = Math.cos(theta) * s * r;
+      dustPos[i * 3 + 1] = u * r * 0.55;
+      dustPos[i * 3 + 2] = Math.sin(theta) * s * r;
+    }
+    const dustGeo = new THREE.BufferGeometry();
+    dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
+    const dustMat = new THREE.PointsMaterial({
+      color: 0xc4b5fd,
+      size: 0.022,
+      transparent: true,
+      opacity: 0.55,
+      depthWrite: false,
+      sizeAttenuation: true,
+      blending: THREE.AdditiveBlending,
+    });
+    const dust = new THREE.Points(dustGeo, dustMat);
+    root.add(dust);
+
+    /* ── lighting ───────────────────────────────────────────────── */
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(ambient);
 
     const key = new THREE.DirectionalLight(0xfff7ff, 1.05);
     key.position.set(4.2, 5.2, 6);
@@ -130,93 +200,184 @@ export function HeroScene() {
     rim.position.set(-5, -2.2, -3);
     scene.add(rim);
 
+    /* ── pointer parallax ───────────────────────────────────────── */
+
     const pointer = { x: 0, y: 0 };
     const onPointer = (event: PointerEvent) => {
       const rect = wrap.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
-      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      pointer.y = ((event.clientY - rect.top) / rect.height) * 2 - 1;
+      // Clamp so the sculpture never swings further than the fit allows.
+      pointer.x = THREE.MathUtils.clamp(((event.clientX - rect.left) / rect.width) * 2 - 1, -1.4, 1.4);
+      pointer.y = THREE.MathUtils.clamp(((event.clientY - rect.top) / rect.height) * 2 - 1, -1.4, 1.4);
     };
     window.addEventListener("pointermove", onPointer, { passive: true });
 
+    /* ── responsive framing ─────────────────────────────────────── */
+
+    /**
+     * Pull the camera back far enough that a sphere of SCENE_RADIUS fits
+     * inside BOTH the vertical and the horizontal frustum.
+     */
+    const fitCamera = (aspect: number) => {
+      const radius = SCENE_RADIUS * FIT_MARGIN;
+      const vFov = THREE.MathUtils.degToRad(FOV);
+      const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
+      const distV = radius / Math.sin(vFov / 2);
+      const distH = radius / Math.sin(hFov / 2);
+      const dist = Math.max(distV, distH);
+
+      camera.position.copy(VIEW_DIR).multiplyScalar(dist);
+      camera.lookAt(0, 0, 0);
+      camera.near = Math.max(0.1, dist - radius * 2);
+      camera.far = dist + radius * 3;
+      camera.aspect = aspect;
+      camera.updateProjectionMatrix();
+    };
+
+    let viewAspect = 1;
     const resize = () => {
       const { width, height } = wrap.getBoundingClientRect();
       if (width < 2 || height < 2) return;
       renderer.setSize(width, height, false);
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
+      viewAspect = width / height;
+      fitCamera(viewAspect);
+      if (!running) renderFrame();
     };
-    const observer = new ResizeObserver(resize);
-    observer.observe(wrap);
-    resize();
+
+    /* ── animation ──────────────────────────────────────────────── */
 
     const timer = new THREE.Timer();
     timer.connect(document);
     let elapsed = 0;
     let frame = 0;
-    let running = true;
+    let running = false;
+    let visible = true;
+    let onScreen = true;
 
-    const draw = (dt: number) => {
+    const renderFrame = () => renderer.render(scene, camera);
+
+    const update = (dt: number) => {
       elapsed += dt;
-      root.position.y = Math.sin(elapsed * 0.7) * 0.12;
-      gem.rotation.y = elapsed * 0.22;
-      gem.rotation.x = Math.sin(elapsed * 0.32) * 0.16;
+
+      // Entrance: settle into place instead of popping in.
+      const intro = easeOutCubic(Math.min(elapsed / 1.4, 1));
+      root.scale.setScalar(0.9 + 0.1 * intro);
+
+      ringMat.opacity = 0.7 * intro;
+      ring2Mat.opacity = 0.36 * intro;
+      wireMat.opacity = 0.32 * intro;
+      dustMat.opacity = 0.55 * intro;
+      shardMat.opacity = intro;
+      coreMat.opacity = intro;
+
+      root.position.y = Math.sin(elapsed * 0.6) * 0.09;
+
+      gem.rotation.y = elapsed * 0.2;
+      gem.rotation.x = Math.sin(elapsed * 0.3) * 0.14;
       wire.rotation.copy(gem.rotation);
-      core.rotation.y = -elapsed * 0.55;
-      core.rotation.x = elapsed * 0.3;
-      ring.rotation.z = elapsed * 0.16;
-      ring2.rotation.z = -elapsed * 0.11;
-      orbit.rotation.y = elapsed * 0.32;
-      shards.forEach((shard, index) => {
-        shard.rotation.x = elapsed * 0.9 + index;
-        shard.rotation.y = elapsed * 0.45;
-      });
-      const targetY = pointer.x * 0.42;
-      const targetX = pointer.y * 0.26;
-      root.rotation.y += (targetY - root.rotation.y) * 0.06;
-      root.rotation.x += (targetX - root.rotation.x) * 0.06;
-      renderer.render(scene, camera);
+      halo.rotation.y = -elapsed * 0.08;
+
+      core.rotation.y = -elapsed * 0.5;
+      core.rotation.x = elapsed * 0.28;
+      const pulse = 1 + Math.sin(elapsed * 1.6) * 0.06;
+      core.scale.setScalar(pulse);
+
+      ring.rotation.z = elapsed * 0.14;
+      ring2.rotation.z = -elapsed * 0.1;
+      orbit.rotation.y = elapsed * 0.28;
+      dust.rotation.y = -elapsed * 0.05;
+
+      for (let i = 0; i < shards.length; i++) {
+        shards[i].rotation.x = elapsed * 0.85 + i;
+        shards[i].rotation.y = elapsed * 0.4;
+      }
+
+      // Frame-rate independent damping — same feel at 60 and 144 Hz.
+      const targetY = pointer.x * 0.3;
+      const targetX = pointer.y * 0.18;
+      root.rotation.y = THREE.MathUtils.damp(root.rotation.y, targetY, 3.2, dt);
+      root.rotation.x = THREE.MathUtils.damp(root.rotation.x, targetX, 3.2, dt);
+
+      renderFrame();
     };
 
     const tick = () => {
       if (!running) return;
       timer.update();
-      draw(Math.min(timer.getDelta(), 0.05));
+      update(Math.min(timer.getDelta(), 0.05));
       frame = requestAnimationFrame(tick);
     };
 
-    if (reduce) {
-      draw(0);
-    } else {
-      tick();
-    }
+    const staticFrame = () => {
+      elapsed = 1.4;
+      update(0);
+    };
 
-    const onVisibility = () => {
-      if (document.hidden) {
+    const sync = () => {
+      const shouldRun = !reduce && visible && onScreen;
+      if (shouldRun === running) return;
+      if (shouldRun) {
+        running = true;
+        timer.update();
+        tick();
+      } else {
         running = false;
         cancelAnimationFrame(frame);
-        return;
       }
-      if (reduce) return;
-      timer.update();
-      running = true;
-      tick();
+    };
+
+    const sizeObserver = new ResizeObserver(resize);
+    sizeObserver.observe(wrap);
+    resize();
+
+    if (reduce) staticFrame();
+    else sync();
+
+    const viewObserver = new IntersectionObserver(
+      (entries) => {
+        onScreen = entries.some((entry) => entry.isIntersecting);
+        sync();
+      },
+      { rootMargin: "120px" },
+    );
+    viewObserver.observe(wrap);
+
+    const onVisibility = () => {
+      visible = !document.hidden;
+      sync();
     };
     document.addEventListener("visibilitychange", onVisibility);
+
+    const onMotionPreference = (event: MediaQueryListEvent) => {
+      reduce = event.matches;
+      if (reduce) {
+        sync();
+        staticFrame();
+      } else {
+        sync();
+      }
+    };
+    motionQuery.addEventListener("change", onMotionPreference);
+
+    /* ── theme ──────────────────────────────────────────────────── */
 
     const applyTheme = () => {
       const light = document.documentElement.getAttribute("data-theme") === "light";
       gemMat.color.set(light ? 0x6d28d9 : 0x3b0764);
       gemMat.emissive.set(light ? 0x4c1d95 : 0x5b21b6);
-      gemMat.emissiveIntensity = light ? 0.08 : 0.18;
-      gemMat.roughness = light ? 0.34 : 0.28;
+      gemMat.emissiveIntensity = light ? 0.08 : 0.2;
+      gemMat.roughness = light ? 0.32 : 0.24;
       wireMat.color.set(light ? 0x5b21b6 : 0xc4b5fd);
-      wireMat.opacity = light ? 0.26 : 0.36;
+      haloMat.color.set(light ? 0x8b5cf6 : 0x7c3aed);
+      haloMat.opacity = light ? 0.05 : 0.08;
       ringMat.color.set(light ? 0x0e7490 : 0x67e8f9);
       ring2Mat.color.set(light ? 0x6d28d9 : 0xa78bfa);
-      coreMat.color.set(light ? 0xede9fe : 0xf5f3ff);
+      coreMat.color.set(light ? 0x6d28d9 : 0xf5f3ff);
       shardMat.color.set(light ? 0x7c3aed : 0xe9d5ff);
       shardMat.emissiveIntensity = light ? 0.15 : 0.45;
+      dustMat.color.set(light ? 0x7c3aed : 0xc4b5fd);
+      ambient.intensity = light ? 0.72 : 0.4;
+      if (!running) renderFrame();
     };
     applyTheme();
     const themeObserver = new MutationObserver(applyTheme);
@@ -225,6 +386,8 @@ export function HeroScene() {
       attributeFilter: ["data-theme"],
     });
 
+    /* ── teardown ───────────────────────────────────────────────── */
+
     return () => {
       running = false;
       cancelAnimationFrame(frame);
@@ -232,12 +395,16 @@ export function HeroScene() {
       timer.dispose();
       window.removeEventListener("pointermove", onPointer);
       document.removeEventListener("visibilitychange", onVisibility);
-      observer.disconnect();
+      motionQuery.removeEventListener("change", onMotionPreference);
+      sizeObserver.disconnect();
+      viewObserver.disconnect();
       themeObserver.disconnect();
       gemGeo.dispose();
       gemMat.dispose();
       wireGeo.dispose();
       wireMat.dispose();
+      haloGeo.dispose();
+      haloMat.dispose();
       coreGeo.dispose();
       coreMat.dispose();
       ringGeo.dispose();
@@ -246,6 +413,8 @@ export function HeroScene() {
       ring2Mat.dispose();
       shardGeo.dispose();
       shardMat.dispose();
+      dustGeo.dispose();
+      dustMat.dispose();
       renderer.dispose();
       if (canvas.parentNode === wrap) wrap.removeChild(canvas);
     };
