@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  images: {
+    // Serve original files. Cloudflare image resizing is a paid add-on.
+    unoptimized: true,
+  },
   experimental: {
     agentFeedback: true,
   },
@@ -19,3 +24,5 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+initOpenNextCloudflareForDev();
