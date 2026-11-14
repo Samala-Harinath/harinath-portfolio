@@ -256,6 +256,14 @@ export function HeroScene() {
 
     const renderFrame = () => renderer.render(scene, camera);
 
+    const tone = {
+      ring: 0.7,
+      ring2: 0.36,
+      wire: 0.32,
+      dust: 0.55,
+      halo: 0.05,
+    };
+
     const update = (dt: number) => {
       elapsed += dt;
 
@@ -263,10 +271,11 @@ export function HeroScene() {
       const intro = easeOutCubic(Math.min(elapsed / 1.4, 1));
       root.scale.setScalar(0.9 + 0.1 * intro);
 
-      ringMat.opacity = 0.7 * intro;
-      ring2Mat.opacity = 0.36 * intro;
-      wireMat.opacity = 0.32 * intro;
-      dustMat.opacity = 0.55 * intro;
+      ringMat.opacity = tone.ring * intro;
+      ring2Mat.opacity = tone.ring2 * intro;
+      wireMat.opacity = tone.wire * intro;
+      dustMat.opacity = tone.dust * intro;
+      haloMat.opacity = tone.halo * intro;
       shardMat.opacity = intro;
       coreMat.opacity = intro;
 
@@ -363,20 +372,40 @@ export function HeroScene() {
 
     const applyTheme = () => {
       const light = document.documentElement.getAttribute("data-theme") === "light";
-      gemMat.color.set(light ? 0x6d28d9 : 0x3b0764);
-      gemMat.emissive.set(light ? 0x4c1d95 : 0x5b21b6);
-      gemMat.emissiveIntensity = light ? 0.08 : 0.2;
-      gemMat.roughness = light ? 0.32 : 0.24;
-      wireMat.color.set(light ? 0x5b21b6 : 0xc4b5fd);
-      haloMat.color.set(light ? 0x8b5cf6 : 0x7c3aed);
-      haloMat.opacity = light ? 0.05 : 0.08;
-      ringMat.color.set(light ? 0x0e7490 : 0x67e8f9);
-      ring2Mat.color.set(light ? 0x6d28d9 : 0xa78bfa);
-      coreMat.color.set(light ? 0x6d28d9 : 0xf5f3ff);
-      shardMat.color.set(light ? 0x7c3aed : 0xe9d5ff);
-      shardMat.emissiveIntensity = light ? 0.15 : 0.45;
-      dustMat.color.set(light ? 0x7c3aed : 0xc4b5fd);
-      ambient.intensity = light ? 0.72 : 0.4;
+      // Light theme needs a luminous crystal — dark metal reads as a black blob on white.
+      gemMat.color.set(light ? 0x3b82f6 : 0x1e293b);
+      gemMat.emissive.set(light ? 0x1d4ed8 : 0x1e3a8a);
+      gemMat.emissiveIntensity = light ? 0.42 : 0.14;
+      gemMat.metalness = light ? 0.12 : 0.6;
+      gemMat.roughness = light ? 0.22 : 0.26;
+      gemMat.clearcoat = light ? 0.6 : 1;
+      wireMat.color.set(light ? 0x1d4ed8 : 0xc4b5fd);
+      haloMat.color.set(light ? 0x60a5fa : 0x7c3aed);
+      haloMat.blending = light ? THREE.NormalBlending : THREE.AdditiveBlending;
+      haloMat.needsUpdate = true;
+      ringMat.color.set(light ? 0x2563eb : 0x67e8f9);
+      ring2Mat.color.set(light ? 0x7c3aed : 0xa78bfa);
+      coreMat.color.set(light ? 0x1e40af : 0xf5f3ff);
+      shardMat.color.set(light ? 0x4f46e5 : 0xe9d5ff);
+      shardMat.emissive.set(light ? 0x4338ca : 0x6d28d9);
+      shardMat.emissiveIntensity = light ? 0.35 : 0.45;
+      dustMat.color.set(light ? 0x4f46e5 : 0xc4b5fd);
+      dustMat.blending = light ? THREE.NormalBlending : THREE.AdditiveBlending;
+      dustMat.needsUpdate = true;
+      tone.ring = light ? 0.9 : 0.7;
+      tone.ring2 = light ? 0.55 : 0.36;
+      tone.wire = light ? 0.72 : 0.32;
+      tone.dust = light ? 0.7 : 0.55;
+      tone.halo = light ? 0.16 : 0.08;
+      ambient.intensity = light ? 1.25 : 0.4;
+      key.intensity = light ? 1.55 : 1.05;
+      key.color.set(light ? 0xffffff : 0xfff7ff);
+      violet.color.set(light ? 0x6366f1 : 0x7c3aed);
+      violet.intensity = light ? 16 : 22;
+      cyan.color.set(light ? 0x38bdf8 : 0x22d3ee);
+      cyan.intensity = light ? 14 : 12;
+      rim.color.set(light ? 0xffffff : 0xc4b5fd);
+      rim.intensity = light ? 1.2 : 0.85;
       if (!running) renderFrame();
     };
     applyTheme();

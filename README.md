@@ -55,13 +55,17 @@ Fields marked `TODO:` must be confirmed and updated before the site goes live. T
 
 ## Resume PDF
 
-Place the actual PDF at:
+The PDF lives at (case-sensitive):
 
 ```
-public/resume.pdf
+public/Resume.pdf
 ```
 
-A placeholder file is currently at that path. Replace it with the real document before publishing.
+To update it, replace that file. The path is set in one place: `RESUME_PATH` in `src/components/resume/ResumeViewer.tsx`.
+
+- Any **Resume** button (navbar, hero, mobile menu) opens a 3D PDF preview modal with **Download**, **Open in new tab** and **Print**.
+- `/resume` is an interactive résumé page (3D document card, scroll timeline, draggable 3D skill globe, industries, embedded PDF).
+- Industries content is in `src/data/industries.ts` (`proven` = shipped work, `ready` = skills that carry over).
 
 ---
 

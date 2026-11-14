@@ -22,11 +22,6 @@ export default function BlogPage() {
       <main className="relative overflow-hidden">
         {/* Hero band */}
         <div className="relative pt-32 pb-20 border-b border-[var(--border)] overflow-hidden">
-          <div
-            aria-hidden
-            className="absolute inset-0 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse 70% 60% at 50% 40%, var(--accent-dim) 0%, transparent 70%)" }}
-          />
           <Container className="relative z-10 text-center">
             <AnimatedSection direction="down" distance={14}>
               <Link href="/" className="group inline-flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors mb-8">
@@ -37,7 +32,7 @@ export default function BlogPage() {
               <p className="mb-4 font-mono text-xs tracking-[0.25em] uppercase text-[var(--accent)]">Technical Writing</p>
             </AnimatedSection>
             <AnimatedSection delay={0.16} scale>
-              <h1 className="text-5xl md:text-7xl font-black tracking-tight text-[var(--text-primary)] mb-5">
+              <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-[var(--text-primary)] mb-5">
                 The Blog<span className="text-[var(--accent)]">.</span>
               </h1>
             </AnimatedSection>

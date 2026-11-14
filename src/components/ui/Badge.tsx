@@ -10,13 +10,13 @@ interface BadgeProps {
 
 const variantClasses: Record<BadgeVariant, string> = {
   default:
-    "bg-[var(--color-card)] border border-[var(--color-border)] text-[var(--color-text-secondary)]",
+    "bg-[var(--card)] border border-[var(--border)] text-[var(--text-secondary)]",
   accent:
-    "bg-[var(--color-accent-dim)] border border-[var(--color-accent)]/30 text-[var(--color-accent)]",
+    "bg-[var(--accent-dim)] border border-[var(--accent)]/30 text-[var(--accent-bright)]",
   success:
-    "bg-[var(--color-success)]/10 border border-[var(--color-success)]/30 text-[var(--color-success)]",
+    "bg-[var(--success)]/10 border border-[var(--success)]/30 text-[var(--success)]",
   outline:
-    "border border-[var(--color-border)] text-[var(--color-text-muted)]",
+    "border border-[var(--border)] text-[var(--text-muted)]",
 };
 
 export function Badge({

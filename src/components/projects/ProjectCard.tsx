@@ -14,29 +14,6 @@ interface ProjectCardProps {
   index?: number;
 }
 
-const categoryConfig: Record<string, { gradient: string; badge: string; glowColor: string }> = {
-  AI: {
-    gradient: "from-violet-600/25 via-purple-900/15 to-transparent",
-    badge: "bg-violet-500/20 text-violet-300 border-violet-500/40",
-    glowColor: "124,58,237",
-  },
-  SaaS: {
-    gradient: "from-blue-600/25 via-blue-900/15 to-transparent",
-    badge: "bg-blue-500/20 text-blue-300 border-blue-500/40",
-    glowColor: "59,130,246",
-  },
-  Dashboard: {
-    gradient: "from-emerald-600/25 via-emerald-900/15 to-transparent",
-    badge: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
-    glowColor: "16,185,129",
-  },
-  Other: {
-    gradient: "from-orange-600/25 via-orange-900/15 to-transparent",
-    badge: "bg-orange-500/20 text-orange-300 border-orange-500/40",
-    glowColor: "249,115,22",
-  },
-};
-
 const categoryIcons: Record<string, React.ReactNode> = {
   AI: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} className="w-10 h-10 opacity-50">
@@ -56,43 +33,30 @@ const categoryIcons: Record<string, React.ReactNode> = {
 };
 
 export function ProjectCard({ project, className, index = 0 }: ProjectCardProps) {
-  const cfg = categoryConfig[project.category] ?? categoryConfig.Other;
   const cardRef = useRef<HTMLDivElement>(null);
-  const glowRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
 
-  // Pure CSS 3D tilt + pointer-tracked sheen via inline style mutation —
-  // no React state churn, so it stays smooth at 60fps.
+  // Subtle CSS 3D tilt via inline style mutation — no React state churn.
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = cardRef.current;
     if (!card || reduce) return;
     const rect = card.getBoundingClientRect();
-    const px = (e.clientX - rect.left) / rect.width;
-    const py = (e.clientY - rect.top) / rect.height;
-    const x = px - 0.5;
-    const y = py - 0.5;
-    card.style.transform = `perspective(1000px) rotateX(${-y * 6}deg) rotateY(${x * 6}deg) translateY(-6px) scale(1.01)`;
-
-    const glow = glowRef.current;
-    if (glow) {
-      glow.style.opacity = "1";
-      glow.style.background = `radial-gradient(420px circle at ${px * 100}% ${py * 100}%, rgba(${cfg.glowColor},0.16), transparent 60%)`;
-    }
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    card.style.transform = `perspective(1000px) rotateX(${-y * 4}deg) rotateY(${x * 4}deg) translateY(-4px)`;
   };
 
   const handleMouseLeave = () => {
     const card = cardRef.current;
     if (card) {
-      card.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)";
+      card.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)";
     }
-    const glow = glowRef.current;
-    if (glow) glow.style.opacity = "0";
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: reduce ? 0 : 28, filter: reduce ? "none" : "blur(8px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      initial={{ opacity: 0, y: reduce ? 0 : 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-10%" }}
       transition={{ delay: index * 0.08, duration: 0.7, ease: EASE }}
       className={cn("cursor-default", className)}
@@ -107,47 +71,27 @@ export function ProjectCard({ project, className, index = 0 }: ProjectCardProps)
         }}
         className="group relative flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden hover:border-[var(--border-light)] h-full"
       >
-        {/* Pointer-tracked sheen */}
-        <div
-          ref={glowRef}
-          aria-hidden
-          className="pointer-events-none absolute inset-0 z-10 opacity-0"
-          style={{ transition: "opacity 0.3s ease" }}
-        />
         {/* Visual area */}
         <div
-          className={cn(
-            "relative h-44 bg-gradient-to-br flex items-center justify-center overflow-hidden flex-shrink-0",
-            cfg.gradient
-          )}
+          className="relative h-40 flex items-center justify-center overflow-hidden flex-shrink-0 border-b border-[var(--border)] bg-[var(--surface)]"
         >
-          <div
-            aria-hidden
-            className="absolute inset-0 opacity-[0.07]"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.2) 1px, transparent 1px)",
-              backgroundSize: "20px 20px",
-            }}
-          />
-
           {/* Icon */}
-          <div className="relative text-white transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover:scale-100 motion-reduce:group-hover:rotate-0">
+          <div className="relative text-[var(--text-muted)] transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover:scale-100 motion-reduce:group-hover:rotate-0">
             {categoryIcons[project.category] ?? categoryIcons.SaaS}
           </div>
 
           {/* Index */}
-          <span className="absolute bottom-3 right-4 font-mono text-2xl font-black opacity-[0.08] text-white select-none">
+          <span className="absolute bottom-3 right-4 font-mono text-2xl font-bold text-[var(--border-light)] select-none">
             {String(index + 1).padStart(2, "0")}
           </span>
 
           {/* Category badge */}
-          <div className={cn("absolute top-3 left-3 px-2.5 py-1 rounded-full text-[11px] font-bold border", cfg.badge)}>
+          <div className="absolute top-3 left-3 px-2.5 py-1 rounded-md text-[11px] font-medium border border-[var(--border)] bg-[var(--card)] text-[var(--text-secondary)]">
             {project.category}
           </div>
 
           {project.confidentialityNote && (
-            <div className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-md bg-black/40 backdrop-blur-sm px-2 py-1 text-[10px] text-white/60">
+            <div className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--card)] px-2 py-1 text-[10px] text-[var(--text-muted)]">
               <Lock className="w-3 h-3" aria-hidden />
               Confidential
             </div>
@@ -200,7 +144,7 @@ export function ProjectCard({ project, className, index = 0 }: ProjectCardProps)
             <motion.div whileHover={reduce ? undefined : { x: 3 }} transition={SPRING}>
               <Link
                 href={`/projects/${project.slug}`}
-                className="group/link inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent-bright)] hover:text-violet-400 transition-colors"
+                className="group/link inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent-bright)] hover:text-[var(--accent-bright)] transition-colors"
                 aria-label={`Case study: ${project.title}`}
               >
                 Case study

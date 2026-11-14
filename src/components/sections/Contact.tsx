@@ -70,21 +70,16 @@ export function Contact() {
   );
 
   return (
-    <section id="contact" aria-labelledby="contact-heading" className="section">
+    <section id="contact" aria-labelledby="contact-heading" className="section scroll-mt-20">
       <Container>
         {/* Background decoration */}
         <div className="relative">
-          <div
-            aria-hidden
-            className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-[120px] opacity-10"
-            style={{ background: "var(--accent)" }}
-          />
 
           <div className="relative grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-16">
             {/* Left */}
             <div className="lg:col-span-2">
               <AnimatedSection direction="left">
-                <p className="mb-3 font-mono text-xs tracking-[0.2em] uppercase text-[var(--accent-bright)]">Get in touch</p>
+                <p className="eyebrow mb-3">Get in touch</p>
                 <h2 id="contact-heading" className="text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-primary)] mb-4">
                   Have a project in mind?
                 </h2>
@@ -148,7 +143,7 @@ export function Contact() {
                       <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">Message sent!</h3>
                       <p className="text-[var(--text-secondary)]">Thanks for reaching out. I&apos;ll get back to you as soon as possible.</p>
                     </div>
-                    <button type="button" onClick={() => setStatus("idle")} className="text-sm text-[var(--accent-bright)] hover:text-violet-400 transition-colors">
+                    <button type="button" onClick={() => setStatus("idle")} className="text-sm text-[var(--accent-bright)] hover:text-[var(--accent-bright)] transition-colors">
                       Send another message
                     </button>
                   </motion.div>
@@ -168,7 +163,7 @@ export function Contact() {
                       <h3 className="font-semibold text-[var(--text-primary)] mb-1">Email not configured</h3>
                       <p className="text-sm text-[var(--text-secondary)]">Please reach out directly via email or LinkedIn.</p>
                     </div>
-                    <button type="button" onClick={() => setStatus("idle")} className="self-start text-sm text-[var(--accent-bright)] hover:text-violet-400">Back</button>
+                    <button type="button" onClick={() => setStatus("idle")} className="self-start text-sm text-[var(--accent-bright)] hover:text-[var(--accent-bright)]">Back</button>
                   </motion.div>
                 ) : (
                   <motion.form
@@ -227,7 +222,7 @@ export function Contact() {
                       whileTap={reduce || status === "loading" ? undefined : { scale: 0.98 }}
                       transition={SPRING}
                       className={cn(
-                        "inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold bg-[var(--accent)] text-white hover:bg-violet-500 transition-colors shadow-lg shadow-violet-900/30 hover:shadow-violet-800/40",
+                        "inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold bg-[var(--accent)] text-white hover:opacity-90 transition-colors",
                         status === "loading" && "opacity-70 cursor-not-allowed"
                       )}
                     >

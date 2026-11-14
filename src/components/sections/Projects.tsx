@@ -11,8 +11,8 @@ export function Projects() {
     <section id="projects" aria-labelledby="projects-heading" className="section">
       <Container>
         <AnimatedSection>
-          <p className="mb-3 font-mono text-xs tracking-[0.2em] uppercase text-[var(--accent-bright)]">Selected work</p>
-          <h2 id="projects-heading" className="text-3xl md:text-4xl font-black tracking-tight text-[var(--text-primary)] mb-4">
+          <p className="eyebrow mb-3">Selected work</p>
+          <h2 id="projects-heading" className="text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-primary)] mb-4">
             Projects
           </h2>
           <p className="text-[var(--text-secondary)] max-w-xl mb-12">

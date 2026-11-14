@@ -13,7 +13,7 @@ import {
 const approaches = [
   {
     num: "01",
-    color: "text-violet-400",
+    color: "text-[var(--accent-bright)]",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0l4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0l-5.571 3-5.571-3" />
@@ -25,7 +25,7 @@ const approaches = [
   },
   {
     num: "02",
-    color: "text-cyan-400",
+    color: "text-[var(--accent-bright)]",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
@@ -37,7 +37,7 @@ const approaches = [
   },
   {
     num: "03",
-    color: "text-pink-400",
+    color: "text-[var(--accent-bright)]",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
@@ -49,7 +49,7 @@ const approaches = [
   },
   {
     num: "04",
-    color: "text-amber-400",
+    color: "text-[var(--accent-bright)]",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0H3" />
@@ -61,7 +61,7 @@ const approaches = [
   },
   {
     num: "05",
-    color: "text-emerald-400",
+    color: "text-[var(--accent-bright)]",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
@@ -73,7 +73,7 @@ const approaches = [
   },
   {
     num: "06",
-    color: "text-orange-400",
+    color: "text-[var(--accent-bright)]",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
@@ -92,8 +92,8 @@ export function EngineeringApproach() {
     <section id="approach" aria-labelledby="approach-heading" className="section">
       <Container>
         <AnimatedSection>
-          <p className="mb-3 font-mono text-xs tracking-[0.2em] uppercase text-[var(--accent-bright)]">How I work</p>
-          <h2 id="approach-heading" className="text-3xl md:text-4xl font-black tracking-tight text-[var(--text-primary)] mb-4">
+          <p className="eyebrow mb-3">How I work</p>
+          <h2 id="approach-heading" className="text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-primary)] mb-4">
             Engineering approach
           </h2>
           <p className="text-[var(--text-secondary)] max-w-xl mb-12">
@@ -114,13 +114,13 @@ export function EngineeringApproach() {
               {/* Number */}
               <div className="flex items-start justify-between mb-5">
                 <motion.span
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${item.color} bg-current/10`}
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center border border-[var(--border)] bg-[var(--surface)] ${item.color}`}
                   whileHover={reduce ? undefined : { rotate: -8, scale: 1.1 }}
                   transition={SPRING}
                 >
                   <span className={item.color}>{item.icon}</span>
                 </motion.span>
-                <span className="font-mono text-3xl font-black text-[var(--border-light)] transition-colors duration-300 group-hover:text-[var(--accent)]/30">
+                <span className="font-mono text-2xl font-semibold text-[var(--border-light)] transition-colors duration-300 group-hover:text-[var(--text-muted)]">
                   {item.num}
                 </span>
               </div>

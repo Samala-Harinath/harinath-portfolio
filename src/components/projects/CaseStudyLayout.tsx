@@ -10,20 +10,11 @@ interface Props {
   next?: Pick<Project, "slug" | "title">;
 }
 
-const categoryAccent: Record<string, string> = {
-  AI: "from-violet-500/15 to-purple-900/5",
-  SaaS: "from-blue-500/15 to-cyan-900/5",
-  Dashboard: "from-emerald-500/15 to-teal-900/5",
-  Other: "from-orange-500/15 to-amber-900/5",
-};
-
 export function CaseStudyLayout({ project, prev, next }: Props) {
-  const gradient = categoryAccent[project.category] ?? categoryAccent.Other;
-
   return (
-    <main className="pt-24 pb-24">
+    <main className="pt-16 pb-24">
       {/* Hero band */}
-      <div className={`bg-gradient-to-b ${gradient} border-b border-[var(--border)] mb-12`}>
+      <div className="bg-[var(--surface)] border-b border-[var(--border)] mb-12">
         <Container className="max-w-[900px] py-16">
           <Link
             href="/#projects"

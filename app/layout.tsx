@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { personal } from "@/data/personal";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
+import { ResumeViewerProvider } from "@/components/resume/ResumeViewer";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -62,8 +63,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: antiFlashScript }} />
       </head>
       <body className="min-h-full flex flex-col antialiased">
+        <div className="page-atmosphere" aria-hidden />
         <ThemeProvider>
-          {children}
+          <ResumeViewerProvider>
+            {children}
+          </ResumeViewerProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -10,6 +10,8 @@ import { Footer } from "@/components/layout/Footer";
 import { CursorGlow } from "@/components/ui/CursorGlow";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import { ParticleCanvas } from "@/components/ui/ParticleCanvas";
+import { TechMarquee } from "@/components/ui/TechMarquee";
+import { Industries } from "@/components/sections/Industries";
 
 export default function HomePage() {
   return (
@@ -20,10 +22,12 @@ export default function HomePage() {
       <Navbar />
       <main id="main-content" className="relative z-10">
         <Hero />
+        <TechMarquee />
         <About />
         <Skills />
         <Experience />
         <Projects />
+        <Industries />
         <EngineeringApproach />
         <Contact />
       </main>

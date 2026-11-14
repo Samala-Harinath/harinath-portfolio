@@ -4,10 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X, Download } from "lucide-react";
+import { Menu, X, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { ResumeButton } from "@/components/resume/ResumeViewer";
 
 const anchorLinks = [
   { label: "About", href: "#about" },
@@ -22,14 +23,19 @@ const pageLinks = [
 
 function NavLogo() {
   return (
-    <Image
-      src="/fevicon.png"
-      alt="Harinath Samala"
-      width={38}
-      height={38}
-      className="rounded-xl"
-      priority
-    />
+    <span className="flex items-center gap-2.5">
+      <Image
+        src="/fevicon.png"
+        alt=""
+        width={32}
+        height={32}
+        className="rounded-lg"
+        priority
+      />
+      <span className="hidden text-[15px] font-semibold tracking-tight text-[var(--text-primary)] lg:inline">
+        Harinath Samala
+      </span>
+    </span>
   );
 }
 
@@ -42,10 +48,18 @@ export function Navbar() {
 
   const isHome = pathname === "/";
 
+  // Scroll shadow — tracked on every page.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Active-section tracking — home page only.
   useEffect(() => {
     if (!isHome) return;
     const onScroll = () => {
-      setScrolled(window.scrollY > 40);
       const sections = ["about", "experience", "projects", "contact"];
       let found = false;
       for (const id of [...sections].reverse()) {
@@ -96,14 +110,12 @@ export function Navbar() {
     <>
       <header
         className={cn(
-          "fixed top-0 inset-x-0 z-50 transition-all duration-500",
-          scrolled
-            ? "bg-[var(--bg)]/90 backdrop-blur-xl border-b border-[var(--border)]"
-            : "bg-transparent"
+          "fixed top-0 inset-x-0 z-50 border-b border-[var(--border)] bg-[var(--header-bg)] backdrop-blur-md transition-shadow duration-300",
+          scrolled && "shadow-[0_1px_0_0_var(--border),0_8px_24px_-16px_rgba(0,0,0,0.5)]"
         )}
       >
-        <div className="mx-auto max-w-[1200px] px-6 md:px-10">
-          <nav className="flex items-center justify-between h-[72px]" aria-label="Main navigation">
+        <div className="mx-auto max-w-[1200px] px-6 md:px-10 lg:px-12">
+          <nav className="flex items-center justify-between h-16" aria-label="Main navigation">
 
             {/* Logo */}
             <Link href="/" aria-label="Harinath Samala home">
@@ -111,7 +123,7 @@ export function Navbar() {
             </Link>
 
             {/* Desktop nav */}
-            <div className="hidden md:flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-0.5 lg:gap-1">
               {anchorLinks.map((link) => {
                 const isActive = displayActiveSection === link.href.slice(1);
                 return (
@@ -120,7 +132,7 @@ export function Navbar() {
                     href={isHome ? link.href : `/${link.href}`}
                     onClick={(e) => handleAnchorClick(e, link.href)}
                     className={cn(
-                      "relative px-4 py-2 text-sm font-medium transition-colors rounded-lg",
+                      "relative px-2.5 lg:px-4 py-2 text-sm font-medium transition-colors rounded-lg",
                       isActive
                         ? "text-[var(--accent-bright)]"
                         : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--card)]"
@@ -144,7 +156,7 @@ export function Navbar() {
                     key={link.href}
                     href={link.href}
                     className={cn(
-                      "relative px-4 py-2 text-sm font-medium transition-colors rounded-lg",
+                      "relative px-2.5 lg:px-4 py-2 text-sm font-medium transition-colors rounded-lg",
                       isActive
                         ? "text-[var(--accent-bright)]"
                         : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--card)]"
@@ -165,15 +177,13 @@ export function Navbar() {
             {/* Right: theme toggle + resume */}
             <div className="hidden md:flex items-center gap-2">
               <ThemeToggle />
-              <a
-                href="/Resume.pdf"
-                download
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold border border-[var(--accent-bright)]/50 text-[var(--accent-bright)] hover:bg-[var(--accent-dim)] transition-all"
-                aria-label="Download resume"
+              <ResumeButton
+                aria-label="View resume"
+                className="btn-primary inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold"
               >
-                <Download className="w-3.5 h-3.5" aria-hidden />
+                <FileText className="w-3.5 h-3.5" aria-hidden />
                 Resume
-              </a>
+              </ResumeButton>
             </div>
 
             {/* Mobile: theme + burger */}
@@ -266,13 +276,12 @@ export function Navbar() {
                 })}
               </nav>
 
-              <a
-                href="/Resume.pdf"
-                download
-                className="mt-6 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold bg-[var(--accent)] text-white hover:bg-[var(--accent-bright)] transition-colors"
+              <ResumeButton
+                onClick={() => setMenuOpen(false)}
+                className="btn-primary mt-6 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold"
               >
-                <Download className="w-4 h-4" /> Download Resume
-              </a>
+                <FileText className="w-4 h-4" aria-hidden /> View Resume
+              </ResumeButton>
             </motion.div>
           </>
         )}

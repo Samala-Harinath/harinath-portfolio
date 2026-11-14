@@ -60,6 +60,8 @@ export function ParticleCanvas() {
 
     function draw() {
       if (!ctx) return;
+      // Neutral dots that follow the active theme
+      const color = document.documentElement.getAttribute("data-theme") === "light" ? "29,111,232" : "125,211,252";
       ctx.clearRect(0, 0, W(), H());
 
       for (const p of particles) {
@@ -83,7 +85,7 @@ export function ParticleCanvas() {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(139,92,246,${p.opacity})`;
+        ctx.fillStyle = `rgba(${color},${p.opacity * 0.6})`;
         ctx.fill();
       }
 
@@ -99,7 +101,7 @@ export function ParticleCanvas() {
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(139,92,246,${(1 - d / CONNECTION_DIST) * 0.12})`;
+            ctx.strokeStyle = `rgba(${color},${(1 - d / CONNECTION_DIST) * 0.08})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }

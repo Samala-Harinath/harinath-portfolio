@@ -9,7 +9,8 @@ import {
   useTransform,
   useSpring,
 } from "motion/react";
-import { ArrowRight, Download, Mail } from "lucide-react";
+import { ArrowRight, FileText, Mail } from "lucide-react";
+import { useResumeViewer } from "@/components/resume/ResumeViewer";
 import { GithubIcon, LinkedinIcon } from "@/components/ui/SocialIcons";
 import { personal } from "@/data/personal";
 import { Container } from "@/components/ui/Container";
@@ -65,7 +66,7 @@ function RoleLine() {
             animate={{ y: "0%", opacity: 1 }}
             exit={reduce ? undefined : { y: "-110%", opacity: 0 }}
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-            className="block gradient-text"
+            className="block text-[var(--accent-bright)]"
           >
             {ROLES[index]}
           </motion.span>
@@ -77,6 +78,7 @@ function RoleLine() {
 
 export function Hero() {
   const reduce = useReducedMotion();
+  const { open: openResume } = useResumeViewer();
   const sectionRef = useRef<HTMLElement>(null);
 
   const { scrollYProgress } = useScroll({
@@ -102,39 +104,12 @@ export function Hero() {
       aria-label="Introduction"
       className="relative flex min-h-[100svh] items-center overflow-hidden"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 55% at 78% 42%, rgba(124,58,237,0.22) 0%, transparent 58%)," +
-            "radial-gradient(ellipse 40% 35% at 8% 88%, rgba(34,211,238,0.08) 0%, transparent 70%)",
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-70"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(139,92,246,0.045) 1px, transparent 1px)," +
-            "linear-gradient(90deg, rgba(139,92,246,0.045) 1px, transparent 1px)",
-          backgroundSize: "72px 72px",
-          maskImage: "radial-gradient(ellipse 80% 70% at 70% 40%, black 20%, transparent 75%)",
-          WebkitMaskImage: "radial-gradient(ellipse 80% 70% at 70% 40%, black 20%, transparent 75%)",
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-32"
-        style={{ background: "linear-gradient(to bottom, transparent, var(--bg))" }}
-      />
-
-      <Container className="relative z-10 w-full py-28 md:py-32">
+      <Container className="relative z-10 w-full pt-28 pb-20 md:pt-32 md:pb-24">
         <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
           <motion.div className="max-w-xl" style={{ y: copyY }}>
             {personal.openToOpportunities && (
               <motion.div {...rise(0)} className="mb-7">
-                <span className="inline-flex items-center gap-2 rounded-full border border-[var(--success)]/25 bg-[var(--success)]/10 px-3.5 py-1.5 text-[11px] font-semibold tracking-wide text-[var(--success)]">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)]">
                   <span className="relative flex h-1.5 w-1.5" aria-hidden>
                     <span
                       className="absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-60"
@@ -156,7 +131,7 @@ export function Hero() {
 
             <motion.h1
               {...rise(0.12)}
-              className="text-[clamp(2rem,4.6vw,3.55rem)] font-black leading-[1.04] tracking-tight text-[var(--text-primary)]"
+              className="text-[clamp(2rem,4.4vw,3.4rem)] font-bold leading-[1.08] tracking-tight text-[var(--text-primary)]"
             >
               <RoleLine />
               <span className="mt-1 block">for products that</span>
@@ -177,21 +152,22 @@ export function Hero() {
                 onClick={() => scrollTo("projects")}
                 whileHover={reduce ? undefined : { y: -2 }}
                 whileTap={reduce ? undefined : { scale: 0.98 }}
-                className="inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-900/30 transition-colors hover:bg-violet-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-bright)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
+                className="btn-primary inline-flex h-11 items-center gap-2 rounded-lg px-5 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-bright)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
               >
                 View selected work
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </motion.button>
-              <motion.a
-                href="/Resume.pdf"
-                download
+              <motion.button
+                type="button"
+                onClick={openResume}
+                aria-haspopup="dialog"
                 whileHover={reduce ? undefined : { y: -2 }}
                 whileTap={reduce ? undefined : { scale: 0.98 }}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--border-light)] px-6 py-3 text-sm font-semibold text-[var(--text-secondary)] transition-colors hover:border-[var(--accent-bright)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-bright)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
+                className="btn-secondary inline-flex h-11 items-center gap-2 rounded-lg px-5 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-bright)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
               >
-                <Download className="h-4 w-4" aria-hidden />
-                Resume
-              </motion.a>
+                <FileText className="h-4 w-4" aria-hidden />
+                View resume
+              </motion.button>
             </motion.div>
 
             <motion.div {...rise(0.34)} className="mt-7 flex items-center gap-1">
@@ -225,7 +201,7 @@ export function Hero() {
                   <dt className="text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--text-muted)]">
                     {stat.label}
                   </dt>
-                  <dd className="mt-1 text-2xl font-black tabular-nums tracking-tight text-[var(--text-primary)]">
+                  <dd className="mt-1 text-2xl font-bold tabular-nums tracking-tight text-[var(--text-primary)]">
                     <AnimatedCounter value={stat.raw} suffix={stat.suffix} />
                   </dd>
                 </div>
@@ -240,15 +216,6 @@ export function Hero() {
             style={{ y: visualY, opacity: visualOpacity }}
             className="relative mx-auto aspect-square w-full max-w-[440px] sm:max-w-[520px] lg:max-w-[600px]"
           >
-            <div
-              aria-hidden
-              className="pointer-events-none absolute left-1/2 top-1/2 h-[66%] w-[66%] -translate-x-1/2 -translate-y-1/2 rounded-full"
-              style={{
-                background:
-                  "radial-gradient(circle, rgba(124,58,237,0.32) 0%, rgba(34,211,238,0.07) 42%, transparent 70%)",
-                filter: "blur(10px)",
-              }}
-            />
             <HeroScene />
           </motion.div>
         </div>
