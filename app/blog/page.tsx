@@ -5,13 +5,16 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
 import { personal } from "@/data/personal";
+import { buildMetadata } from "@/lib/seo";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 
-export const metadata: Metadata = {
-  title: "Blog",
-  description: `Technical writing by ${personal.name} on React, Next.js, real-time systems, and frontend architecture.`,
-};
+export const metadata: Metadata = buildMetadata({
+  segment: "Blog",
+  description: "Technical writing on React, Next.js, real-time systems, voice AI, and frontend architecture.",
+  alternates: { canonical: "/blog" },
+  openGraph: { type: "website" },
+});
 
 export default function BlogPage() {
   return (

@@ -9,12 +9,13 @@ import { ResumeSkills } from "@/components/resume/ResumeSkills";
 import { ResumePdfSection } from "@/components/resume/ResumePdfSection";
 import { Industries } from "@/components/sections/Industries";
 import { personal } from "@/data/personal";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Résumé",
+export const metadata: Metadata = buildMetadata({
+  segment: "Résumé",
   description: `Interactive résumé of ${personal.name} — ${personal.title} with ${personal.experienceLabel} of experience in React, Next.js, TypeScript, WebRTC and real-time AI products. View or download the PDF.`,
   alternates: { canonical: "/resume" },
-};
+});
 
 export default function ResumePage() {
   return (

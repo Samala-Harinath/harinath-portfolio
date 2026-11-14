@@ -15,7 +15,7 @@ export const personal = {
   linkedin: "https://linkedin.com/in/harinath-samala",
   github: "https://github.com/Samala-Harinath",
   phone: "+91 9011615832",
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://harinath.dev",
+  siteUrl: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://harinathsamala.com/").replace(/\/+$/, ""),
   openToOpportunities: true,
   image: "/myImage.jpeg",
 } as const;

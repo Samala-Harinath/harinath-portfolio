@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,6 +10,7 @@ import { GithubIcon, LinkedinIcon } from "@/components/ui/SocialIcons";
 import { personal } from "@/data/personal";
 import { Container } from "@/components/ui/Container";
 import { cn } from "@/lib/utils";
+import { Turnstile } from "@/components/ui/Turnstile";
 import {
   AnimatedSection,
   StaggerContainer,
@@ -18,12 +19,17 @@ import {
   EASE,
 } from "@/components/ui/AnimatedSection";
 
+const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
+
 const schema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(80),
   email: z.string().email("Please enter a valid email address"),
   subject: z.string().max(120).optional(),
   message: z.string().min(10, "Message must be at least 10 characters").max(2000),
   _honeypot: z.string().max(0, "Bot detected"),
+  turnstileToken: turnstileSiteKey
+    ? z.string().min(1, "Complete the verification check")
+    : z.string().optional(),
 });
 type FormValues = z.infer<typeof schema>;
 type Status = "idle" | "loading" | "success" | "error" | "unconfigured";
@@ -38,11 +44,16 @@ const contacts = [
 export function Contact() {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [captchaKey, setCaptchaKey] = useState(0);
   const reduce = useReducedMotion();
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
+
+  const onCaptcha = useCallback((token: string) => {
+    setValue("turnstileToken", token, { shouldValidate: true });
+  }, [setValue]);
 
   async function onSubmit(data: FormValues) {
     setStatus("loading");
@@ -51,15 +62,28 @@ export function Contact() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: data.name, email: data.email, subject: data.subject, message: data.message }),
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          subject: data.subject,
+          message: data.message,
+          turnstileToken: data.turnstileToken,
+        }),
       });
       const json = await res.json() as { success: boolean; error?: string; unconfigured?: boolean };
       if (json.unconfigured) setStatus("unconfigured");
       else if (json.success) { setStatus("success"); reset(); }
-      else { setStatus("error"); setErrorMsg(json.error ?? "Something went wrong."); }
+      else {
+        setStatus("error");
+        setErrorMsg(json.error ?? "Something went wrong.");
+        setValue("turnstileToken", "");
+        setCaptchaKey((key) => key + 1);
+      }
     } catch {
       setStatus("error");
       setErrorMsg("Network error. Please try again.");
+      setValue("turnstileToken", "");
+      setCaptchaKey((key) => key + 1);
     }
   }
 
@@ -196,6 +220,12 @@ export function Contact() {
                     <Field label="Message" id="c-message" error={errors.message?.message} required>
                       <textarea id="c-message" rows={5} placeholder="Tell me about your project or challenge…" aria-required="true" {...register("message")} className={cn(inputCls(!!errors.message), "resize-none")} />
                     </Field>
+
+                    <input type="hidden" {...register("turnstileToken")} />
+                    <Turnstile key={captchaKey} onToken={onCaptcha} />
+                    {errors.turnstileToken?.message && (
+                      <p role="alert" className="text-xs text-[var(--error)]">{errors.turnstileToken.message}</p>
+                    )}
 
                     <AnimatePresence>
                       {status === "error" && (

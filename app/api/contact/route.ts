@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendContactEmail } from "@/lib/email";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 const schema = z.object({
   name: z
@@ -14,6 +15,7 @@ const schema = z.object({
     .string()
     .min(10, "Message too short")
     .max(2000, "Message too long"),
+  turnstileToken: z.string().optional(),
 });
 
 // Simple in-memory rate limiter (resets on server restart; suitable for serverless edge)
@@ -70,8 +72,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Attempt email delivery
-  const result = await sendContactEmail(parsed.data);
+  const verification = await verifyTurnstileToken(parsed.data.turnstileToken, ip);
+  if (!verification.ok) {
+    return NextResponse.json(
+      { success: false, error: verification.error },
+      { status: verification.status },
+    );
+  }
+
+  const { turnstileToken: _turnstileToken, ...message } = parsed.data;
+  const result = await sendContactEmail(message);
 
   if (!result.success) {
     // Surface unconfigured state honestly to the client
